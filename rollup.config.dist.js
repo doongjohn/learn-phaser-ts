@@ -5,7 +5,6 @@ import { uglify } from 'rollup-plugin-uglify';
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
-
     //  Our games entry point (edit as required)
     input: [
         './src/game.ts'
@@ -24,7 +23,6 @@ export default {
     },
 
     plugins: [
-
         //  Toggle the booleans here to enable / disable Phaser 3 features:
         replace({
             'typeof CANVAS_RENDERER': JSON.stringify(true),
@@ -53,13 +51,20 @@ export default {
             ignoreGlobal: true
         }),
 
-        //  See https://www.npmjs.com/package/rollup-plugin-typescript2 for config options
+        // See https://www.npmjs.com/package/rollup-plugin-typescript2 for config options
+        // Take a look at this: https://github.com/wessberg/rollup-plugin-ts
         typescript(),
+
+        // See https://www.npmjs.com/package/@rollup/plugin-html for config options
+        // Use this in the future: https://modern-web.dev/docs/building/rollup-plugin-html/
+        html({
+            title: "Phaser App",
+            script: ["dist/game.js"]
+        }),
 
         //  See https://www.npmjs.com/package/rollup-plugin-uglify for config options
         uglify({
             mangle: false
         })
-
     ]
 };

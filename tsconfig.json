@@ -1,10 +1,10 @@
 {
+    "include": [
+        "src/**/*.ts",
+        "node_modules/phaser/types"
+    ],
     "compilerOptions": {
         "target": "es5",
         "moduleResolution": "node"
-    },
-    "include": [
-        "src/**/*"
-        // "src/game.ts"
-    ],
+    }
 }

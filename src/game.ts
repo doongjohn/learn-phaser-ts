@@ -1,5 +1,6 @@
 // import * as Phaser from 'phaser';
 // ^ -> this is not ok
+
 import 'phaser';
 
 export default class DemoScene extends Phaser.Scene
