@@ -4,10 +4,9 @@
     "description": "A Phaser 3 Project Template using Rollup and TypeScript",
     "author": "doongjohn",
     "license": "MIT",
-    "main": "src/game.ts",
     "scripts": {
-        "dev": "rollup --watch --config rollup.config.dev.js",
-        "build": "rollup --config rollup.config.dist.js"
+        "dev": "rollup -w -c rollup.config.dev.js",
+        "build": "rollup -c rollup.config.dist.js"
     },
     "devDependencies": {
         "@rollup/plugin-html": "^0.2.3",
@@ -15,6 +14,7 @@
         "phaser": "^3.50.0",
         "rollup": "^2.35.1",
         "rollup-plugin-commonjs": "^10.1.0",
+        "rollup-plugin-copy": "^3.4.0",
         "rollup-plugin-node-resolve": "^5.2.0",
         "rollup-plugin-serve": "^1.1.0",
         "rollup-plugin-typescript2": "^0.29.0",

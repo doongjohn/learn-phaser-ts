@@ -2,13 +2,14 @@ import commonjs from 'rollup-plugin-commonjs';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import html from '@rollup/plugin-html';
+import copy from 'rollup-plugin-copy'
 import serve from 'rollup-plugin-serve';
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
     //  Our games entry point (edit as required)
     input: [
-        './src/game.ts'
+        './src/main.ts'
     ],
 
     //  Where the build file is to be generated.
@@ -57,9 +58,18 @@ export default {
 
         // See https://www.npmjs.com/package/@rollup/plugin-html for config options
         // Use this in the future: https://modern-web.dev/docs/building/rollup-plugin-html/
-        html({
-            title: "Phaser App",
-            script: ["dist/game.js"]
+        // html({
+        //     title: "Phaser App",
+        //     script: ["dist/game.js"]
+        // }),
+
+        // See https://www.npmjs.com/package/rollup-plugin-copy for config options
+        // copy files
+        copy({
+            targets: [
+                { src: "src/style.css", dest: "dist/" },
+                { src: "src/index.html", dest: "dist/" }
+            ]
         }),
 
         //  See https://www.npmjs.com/package/rollup-plugin-serve for config options
