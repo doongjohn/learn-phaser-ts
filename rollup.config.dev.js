@@ -49,12 +49,14 @@ export default {
             exclude: [ 
                 'node_modules/phaser/src/polyfills/requestAnimationFrame.js'
             ],
-            sourceMap: true,
+            // sourceMap: true,
             ignoreGlobal: true
         }),
 
         //  See https://www.npmjs.com/package/rollup-plugin-typescript2 for config options
-        typescript(),
+        typescript({
+            check: false
+        }),
 
         // See https://www.npmjs.com/package/@rollup/plugin-html for config options
         // Use this in the future: https://modern-web.dev/docs/building/rollup-plugin-html/
@@ -68,7 +70,8 @@ export default {
         copy({
             targets: [
                 { src: "src/style.css", dest: "dist/" },
-                { src: "src/index.html", dest: "dist/" }
+                { src: "src/index.html", dest: "dist/" },
+                { src: "src/phaser.min.js", dest: "dist/" }
             ]
         }),
 
