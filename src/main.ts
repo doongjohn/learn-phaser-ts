@@ -1,4 +1,3 @@
-import 'phaser';
 import DemoScene from './demo_scene';
 
 const config = {
