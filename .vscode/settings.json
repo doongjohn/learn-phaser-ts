@@ -1,0 +1,27 @@
+{
+	// workbench
+	"workbench.startupEditor": "none",
+	// editor
+	"editor.minimap.renderCharacters": false,
+	// per language
+	"[json]": {
+		"editor.detectIndentation": false,
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2,
+	},
+	"[jsonc]": {
+		"editor.detectIndentation": false,
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2,
+	},
+	"[javascript]": {
+		"editor.detectIndentation": false,
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2,
+	},
+	"[typescript]": {
+		"editor.detectIndentation": false,
+		"editor.insertSpaces": false,
+		"editor.tabSize": 2,
+	}
+}
