@@ -4,6 +4,11 @@ Learning `Phaser` with `Rollup` bundler and `TypeScript`
 
 ![](./screenshot.png)
 
+## TypeScript
+
+tsconfig.json
+- https://www.typescriptlang.org/tsconfig
+
 ## Phaser
 
 Docs / Examples / Tutorials
