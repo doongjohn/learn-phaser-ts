@@ -51,7 +51,12 @@ export default class DemoScene extends Phaser.Scene {
 }
 
 function createTile(scene: Scene, size: Vector2): Rectangle {
-	return scene.add.rectangle(0, 0, size.x, size.y, 0xffffff);
+	const tile = scene.add.rectangle(0, 0, size.x, size.y, 0xffffff);
+	tile.setInteractive();
+	tile.on('pointerdown', function (pointer) {
+		tile.destroy();
+	});
+	return tile;
 }
 
 function gridAlignCenter(items: Rectangle[], gridSize: Vector2, cellSize: Vector2) {
