@@ -1,9 +1,9 @@
 import commonjs from 'rollup-plugin-commonjs';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import copy from 'rollup-plugin-copy'
-import serve from 'rollup-plugin-serve';
 import esbuild from 'rollup-plugin-esbuild';
+import copy from 'rollup-plugin-copy';
+import serve from 'rollup-plugin-serve';
 
 export default {
 	//  Our games entry point (edit as required)

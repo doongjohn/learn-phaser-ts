@@ -1,8 +1,8 @@
 import commonjs from 'rollup-plugin-commonjs';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import { uglify } from 'rollup-plugin-uglify';
 import esbuild from 'rollup-plugin-esbuild';
+import copy from 'rollup-plugin-copy';
 
 export default {
 	//  Our games entry point (edit as required)
@@ -70,10 +70,5 @@ export default {
 				},
 			]
 		}),
-
-		//  See https://www.npmjs.com/package/rollup-plugin-uglify for config options
-		uglify({
-			mangle: false
-		})
 	]
 };
