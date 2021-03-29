@@ -37,8 +37,9 @@ export default class DemoScene extends Phaser.Scene {
 		for (let i = 0; i < gridSize.x * gridSize.y; i++) {
 			tiles.push(createTile(this, tileSize));
 		}
-
 		const tileContainer = this.add.container(0, 0, tiles);
+
+		// Grid Align
 		gridAlignCenter(tiles, gridSize, cellSize);
 
 		// Add GameObjects to world container
@@ -58,7 +59,7 @@ function gridAlignCenter(items: Rectangle[], gridSize: Vector2, cellSize: Vector
 	const initial_y = -cellSize.y * gridSize.y / 2 + cellSize.y / 2;
 	let curPosX = initial_x;
 	let curPosY = initial_y;
-	
+
 	let index_x = 0;
 	let index_y = 0;
 
