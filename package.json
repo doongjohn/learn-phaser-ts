@@ -6,10 +6,12 @@
 	"license": "MIT",
 	"scripts": {
 		"dev": "rollup -w -c rollup.config.dev.js",
+		"dev-android": "rollup -w -c rollup.config.dev-android.js",
 		"build": "rollup -c rollup.config.dist.js"
 	},
 	"devDependencies": {
 		"@rollup/plugin-replace": "^2.3.4",
+		"@rollup/plugin-typescript": "^8.2.1",
 		"esbuild": "^0.10.2",
 		"phaser": "^3.50.0",
 		"rollup": "^2.35.1",
