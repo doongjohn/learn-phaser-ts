@@ -1,4 +1,4 @@
-import DemoScene from './demo_scene';
+import GameScene from './scene_game';
 
 const config = {
 	type: Phaser.AUTO,
@@ -9,7 +9,8 @@ const config = {
 		autoCenter: Phaser.Scale.CENTER_BOTH,
 	},
 	backgroundColor: '#4eaefc',
-	scene: DemoScene
+	scene: GameScene
 };
 
+// Initialize phaser app
 const game = new Phaser.Game(config);
