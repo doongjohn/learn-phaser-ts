@@ -1,17 +1,17 @@
 {
-    "include": [
-        "src/**/*.ts",
-		    "./node_modules/phaser/types"
-    ],
-    "compilerOptions": {
-        "target": "es5",
-        "moduleResolution": "node",
-				// "typeRoots": [
-				//   "./node_modules/@types",
-				//   "./node_modules/phaser/types"
-				// ],
-				// "types": [
-				//   "Phaser"
-				// ],
-    }
+	"include": [
+		"src/**/*.ts",
+		"./node_modules/phaser/types"
+	],
+	"compilerOptions": {
+		"target": "es5",
+		"moduleResolution": "node",
+		// "typeRoots": [
+		//   "./node_modules/@types",
+		//   "./node_modules/phaser/types"
+		// ],
+		// "types": [
+		//   "Phaser"
+		// ],
+	}
 }
