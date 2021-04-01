@@ -6,6 +6,9 @@
 	"compilerOptions": {
 		"target": "es5",
 		"moduleResolution": "node",
+		"lib": [
+			"DOM"
+		]
 		// "typeRoots": [
 		//   "./node_modules/@types",
 		//   "./node_modules/phaser/types"
