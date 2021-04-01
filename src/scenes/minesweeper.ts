@@ -50,7 +50,7 @@ let mineArray: Rectangle[] = [];
 // Game Scene
 export default class MinesweeperScene extends Scene {
 	constructor() {
-		super('GameScene');
+		super('Minesweeper');
 	}
 
 	preload() {
@@ -72,12 +72,15 @@ export default class MinesweeperScene extends Scene {
 		const minesContainer = generateMines(this);
 		const textContainer = generateNumberText(this);
 
+		const flag = createFlag(this);
+
 		// Add Objects
 		world.add(background);
 		world.add(bgtileContainer);
 		world.add(minesContainer);
 		world.add(textContainer);
 		world.add(tileContainer);
+		world.add(flag);
 
 		// Handle input
 		onTilePointerUp(this);
@@ -317,6 +320,12 @@ function onTilePointerUp(scene: Scene) {
 		curTileClicked = null;
 		clickCallBack = () => { };
 	});
+}
+
+function createFlag(scene: Scene): Container {
+	const flag = scene.add.triangle(0, 0, 0, 0, 0, 100, 100, 50, 0xff1100).setOrigin(0, 1);
+	// const poll = scene.add.rectangle(0, 0, 0.1, 1);
+	return scene.add.container(0, 0, [flag]);
 }
 
 function gridAlignCenter(items: PositionObject[], gridSize: Vector2, cellSize: Vector2) {

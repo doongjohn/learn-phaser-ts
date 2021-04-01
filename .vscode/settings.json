@@ -4,6 +4,15 @@
 	// editor
 	"editor.minimap.renderCharacters": false,
 	"editor.minimap.maxColumn": 85,
+	// files
+	"files.exclude": {
+		"node_modules/": true,
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+	},
 	// per language
 	"[json]": {
 		"editor.detectIndentation": false,
