@@ -1,3 +1,8 @@
+// TODO:
+// boundary fill algorithm
+// flag and gameover
+// main menu
+
 type Scene = Phaser.Scene;
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
@@ -86,7 +91,8 @@ function initializeNumberArray() {
 function generateNumberText(scene: Scene): Container {
 	const numberTexts: Phaser.GameObjects.Text[] = [];
 	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
-		if (numbers[i] >= 10) continue;
+		if (numbers[i] == 0 || numbers[i] >= 10)
+			continue;
 		const txt = scene.add.text(tiles[i].x, tiles[i].y, numbers[i].toString());
 		txt.setOrigin(0.5);
 		txt.setFontSize(40);
