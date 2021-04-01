@@ -1,13 +1,29 @@
+// -----------------------
 // Simple Minesweeper game
-// 
+// -----------------------
+// Features:
+// - touch support
+// - mouse support
+// TODO:
+// - right click flag (swap button for touch)
+// - random mine position
+// - game state
+// - game menu and ui
+// - configurable level
+
 
 // Types
 type Scene = Phaser.Scene;
+const Scene = Phaser.Scene;
+
+type Vector2 = Phaser.Math.Vector2;
+const Vector2 = Phaser.Math.Vector2;
+
+type GameObject = Phaser.GameObjects.GameObject;
+type Text = Phaser.GameObjects.Text;
 type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
 type PositionObject = Container | Rectangle;
-type Vector2 = Phaser.Math.Vector2;
-const Vector2 = Phaser.Math.Vector2;
 
 // Grid settings
 const gridSize = new Vector2(8, 8);
@@ -15,11 +31,14 @@ const gapSize = new Vector2(10, 10);
 const tileSize = new Vector2(100, 100);
 const cellSize = tileSize.clone().add(gapSize);
 
-// Tile settings
+// Colors
+const tileVisualOriginalColor: integer = 0xffffff;
+const tileVisualClickedColor: integer = 0x0066ff;
+const backgroundColor: integer = 0x5088ff;
+
+// Tile input
 let curTileClicked: Rectangle = null;
 let curTileVisual: Rectangle = null;
-let tileVisualOriginalColor: integer = 0xffffff;
-let tileVisualClickedColor: integer = 0x0066ff;
 let clickCallBack = () => { };
 
 // Tiles
@@ -29,7 +48,7 @@ let tileArray: Container[] = [];
 let mineArray: Rectangle[] = [];
 
 // Game Scene
-export default class GameScene extends Phaser.Scene {
+export default class GameScene extends Scene {
 	constructor() {
 		super('GameScene');
 	}
@@ -84,7 +103,7 @@ function initializeNumberArray() {
 }
 
 function generateNumberText(scene: Scene): Container {
-	const numberTexts: Phaser.GameObjects.Text[] = [];
+	const numberTexts: Text[] = [];
 	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
 		if (numArray[i] == 0 || numArray[i] >= 10)
 			continue;
@@ -102,7 +121,7 @@ function generateBackground(scene: Scene): Rectangle {
 		0, 0,
 		gridSize.x * cellSize.x + gapSize.x,
 		gridSize.y * cellSize.y + gapSize.y,
-		0x5088ff
+		backgroundColor
 	);
 }
 
@@ -115,7 +134,7 @@ function generateBGTiles(scene: Scene): Container {
 
 function generateTiles(scene: Scene): Container {
 	for (let i = 0; i < gridSize.x * gridSize.y; i++)
-		tileArray.push(createTile(scene, tileSize, gapSize));
+		tileArray.push(createTile(scene, tileSize, gapSize, i));
 	gridAlignCenter(tileArray, gridSize, cellSize);
 	return scene.add.container(0, 0, tileArray);
 }
@@ -123,44 +142,48 @@ function generateTiles(scene: Scene): Container {
 function generateMines(scene: Scene): Container {
 	let minePositions = [
 		toIndex(new Vector2(0, 0)),
-		toIndex(new Vector2(5, 2)),
+		toIndex(new Vector2(1, 3)),
+		toIndex(new Vector2(2, 2)),
+		toIndex(new Vector2(2, 6)),
 		toIndex(new Vector2(3, 4)),
 		toIndex(new Vector2(4, 5)),
-		toIndex(new Vector2(6, 6))
+		toIndex(new Vector2(5, 1)),
+		toIndex(new Vector2(5, 2)),
+		toIndex(new Vector2(6, 6)),
+		toIndex(new Vector2(7, 5)),
 	];
 
 	for (let i of minePositions) {
 		const mine = createMine(scene, tileSize.clone().divide(new Vector2(2, 2))).
 			setPosition(tileArray[i].x, tileArray[i].y);
 		mineArray.push(mine);
-
-		const coord = toCoord(i);
-		const rightInBound = coord.x + 1 < gridSize.x;
-		const leftInBound = coord.x - 1 >= 0;
-		const upInBound = coord.y + 1 < gridSize.y;
-		const downInBound = coord.y - 1 >= 0;
-
 		numArray[i] = 10;
 
+		const pos = toCoord(i);
+		const rightInBound = pos.x + 1 < gridSize.x;
+		const leftInBound = pos.x - 1 >= 0;
+		const upInBound = pos.y + 1 < gridSize.y;
+		const downInBound = pos.y - 1 >= 0;
+
 		if (rightInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(+1, +0)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(+1, +0)))] += 1;
 		if (leftInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(-1, +0)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(-1, +0)))] += 1;
 
 		if (upInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(+0, +1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(+0, +1)))] += 1;
 		if (downInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(+0, -1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(+0, -1)))] += 1;
 
 		if (upInBound && rightInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(+1, +1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(+1, +1)))] += 1;
 		if (upInBound && leftInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(-1, +1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(-1, +1)))] += 1;
 
 		if (downInBound && rightInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(+1, -1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(+1, -1)))] += 1;
 		if (downInBound && leftInBound)
-			numArray[toIndex(coord.clone().add(new Vector2(-1, -1)))] += 1;
+			numArray[toIndex(pos.clone().add(new Vector2(-1, -1)))] += 1;
 	}
 
 	return scene.add.container(0, 0, mineArray);
@@ -176,7 +199,7 @@ function createMine(scene: Scene, size: Vector2): Rectangle {
 	return tileVisual;
 }
 
-function createTile(scene: Scene, size: Vector2, gapSize: Vector2): Container {
+function createTile(scene: Scene, size: Vector2, gapSize: Vector2, index: integer): Container {
 	const tileVisual = scene.add.
 		rectangle(0, 0, size.x, size.y, tileVisualOriginalColor);
 
@@ -195,12 +218,64 @@ function createTile(scene: Scene, size: Vector2, gapSize: Vector2): Container {
 	scene.input.on('gameout', onOut);
 
 	// On Click
-	onTilePointerDown(tileClick, tileVisual);
+	onTilePointerDown(tileClick, tileVisual, index);
 
 	return container;
 }
 
-function onTilePointerDown(tileClick: Rectangle, tileVisual: Rectangle) {
+function openTile(pos: Vector2) {
+	const children = tileArray[toIndex(pos)].getAll();
+	if (children.length == 0) return
+
+	for (var child of children)
+		child.destroy();
+}
+
+function openTileRecurs(pos: Vector2) {
+	// TODO:
+	// Do not use recursive algorithm
+	// this is horrible
+
+	const children = tileArray[toIndex(pos)].getAll();
+	if (children.length == 0) return
+
+	for (var child of children)
+		child.destroy();
+
+	const rightInBound = pos.x + 1 < gridSize.x;
+	const leftInBound = pos.x - 1 >= 0;
+	const upInBound = pos.y + 1 < gridSize.y;
+	const downInBound = pos.y - 1 >= 0;
+
+	function openNext(nextPos: Vector2) {
+		if (numArray[toIndex(nextPos)] == 0)
+			openTileRecurs(nextPos);
+		else if (numArray[toIndex(nextPos)] < 10)
+			openTile(nextPos);
+	}
+
+	if (rightInBound)
+		openNext(pos.clone().add(new Vector2(+1, +0)));
+	if (leftInBound)
+		openNext(pos.clone().add(new Vector2(-1, +0)));
+
+	if (upInBound)
+		openNext(pos.clone().add(new Vector2(+0, +1)));
+	if (downInBound)
+		openNext(pos.clone().add(new Vector2(+0, -1)));
+
+	if (upInBound && rightInBound)
+		openNext(pos.clone().add(new Vector2(+1, +1)));
+	if (upInBound && leftInBound)
+		openNext(pos.clone().add(new Vector2(-1, +1)));
+
+	if (downInBound && rightInBound)
+		openNext(pos.clone().add(new Vector2(+1, -1)));
+	if (downInBound && leftInBound)
+		openNext(pos.clone().add(new Vector2(-1, -1)));
+}
+
+function onTilePointerDown(tileClick: Rectangle, tileVisual: Rectangle, index: integer) {
 	tileClick.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
 		if (pointer.button != 0)
 			return
@@ -208,8 +283,7 @@ function onTilePointerDown(tileClick: Rectangle, tileVisual: Rectangle) {
 		curTileVisual = tileVisual;
 		curTileVisual.setFillStyle(tileVisualClickedColor);
 		clickCallBack = () => {
-			tileVisual.destroy();
-			tileClick.destroy();
+			openTileRecurs(toCoord(index));
 		};
 	});
 }
@@ -229,7 +303,7 @@ function onTilePointerUp(scene: Scene) {
 		onPointerUp();
 	});
 
-	scene.input.on('gameobjectup', (pointer: Phaser.Input.Pointer, obj: Phaser.GameObjects.GameObject) => {
+	scene.input.on('gameobjectup', (pointer: Phaser.Input.Pointer, obj: GameObject) => {
 		if (pointer.button != 0) return
 
 		if (obj == curTileClicked)
@@ -239,7 +313,7 @@ function onTilePointerUp(scene: Scene) {
 			curTileVisual.setFillStyle(tileVisualOriginalColor);
 			curTileVisual = null;
 		}
-		
+
 		curTileClicked = null;
 		clickCallBack = () => { };
 	});
