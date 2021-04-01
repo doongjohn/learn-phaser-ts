@@ -48,7 +48,7 @@ let tileArray: Container[] = [];
 let mineArray: Rectangle[] = [];
 
 // Game Scene
-export default class GameScene extends Scene {
+export default class MinesweeperScene extends Scene {
 	constructor() {
 		super('GameScene');
 	}

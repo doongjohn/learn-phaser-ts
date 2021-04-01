@@ -1,6 +1,6 @@
 import * as App from './app';
-import GameScene from './scene_game';
+import MinesweeperScene from './scenes/minesweeper';
 
 
 App.initPage();
-App.initGame(new GameScene());
+App.initGame(new MinesweeperScene());
