@@ -25,6 +25,12 @@ type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
 type PositionObject = Container | Rectangle;
 
+// Globals
+let camMain: Phaser.Cameras.Scene2D.Camera;
+let camCenter: () => Vector2;
+let world: Container;
+let flagContainer: Container;
+
 // Grid settings
 const gridSize = new Vector2(8, 8);
 const gapSize = new Vector2(10, 10);
@@ -42,10 +48,12 @@ let curTileVisual: Rectangle = null;
 let clickCallBack = () => { };
 
 // Tiles
-let numArray: integer[] = [];
 let bgTileArray: Rectangle[] = [];
+let numArray: integer[] = [];
 let tileArray: Container[] = [];
 let mineArray: Rectangle[] = [];
+let flagArray: Text[] = [];
+
 
 // Game Scene
 export default class MinesweeperScene extends Scene {
@@ -54,17 +62,18 @@ export default class MinesweeperScene extends Scene {
 	}
 
 	preload() {
+		// Initialize globals
+		camMain = this.cameras.main;
+		camCenter = () => new Vector2(camMain.centerX, camMain.centerY);
+		world = this.add.container(camCenter().x, camCenter().y);
+		flagContainer = this.add.container(0, 0);
 
+		// Initialize arrays
+		initNumberArray();
+		initFlagArray();
 	}
 
 	create() {
-		const camMain = this.cameras.main;
-		const camCenter = () => new Vector2(camMain.centerX, camMain.centerY);
-		const world = this.add.container(camCenter().x, camCenter().y);
-
-		// Initialize Mine Number array
-		initializeNumberArray();
-
 		// Generate Objects
 		const background = generateBackground(this);
 		const bgtileContainer = generateBGTiles(this);
@@ -72,21 +81,20 @@ export default class MinesweeperScene extends Scene {
 		const minesContainer = generateMines(this);
 		const textContainer = generateNumberText(this);
 
-		const flag = createFlag(this);
-
 		// Add Objects
 		world.add(background);
 		world.add(bgtileContainer);
 		world.add(minesContainer);
 		world.add(textContainer);
 		world.add(tileContainer);
-		world.add(flag);
+		world.add(flagContainer);
 
 		// Handle input
 		onTilePointerUp(this);
 	}
 }
 
+//#region Utility
 function toCoord(i: integer): Vector2 {
 	let result = new Vector2(-1, -1);
 	result.y = Math.floor(i / gridSize.x);
@@ -100,25 +108,47 @@ function toIndex(v: Vector2): integer {
 	return gridSize.x * v.y + v.x;
 }
 
-function initializeNumberArray() {
+function gridAlignCenter(items: PositionObject[], gridSize: Vector2, cellSize: Vector2) {
+	const initial_x = (cellSize.x - cellSize.x * gridSize.x) * 0.5;
+	const initial_y = (cellSize.y - cellSize.y * gridSize.y) * 0.5;
+	let curPosX = initial_x;
+	let curPosY = initial_y;
+	let index_x = 0;
+	let index_y = 0;
+
+	for (var item of items) {
+		if (item == null)
+			continue;
+
+		item.setPosition(curPosX, curPosY);
+		if (index_x < gridSize.x - 1) {
+			index_x += 1;
+			curPosX += cellSize.x;
+			continue;
+		}
+		if (index_y < gridSize.y - 1) {
+			index_x = 0;
+			curPosX = initial_x;
+			index_y += 1;
+			curPosY += cellSize.y;
+		}
+	}
+}
+//#endregion
+
+//#region Initialize
+function initNumberArray() {
 	for (let i = 0; i < gridSize.x * gridSize.y; i++)
 		numArray.push(0);
 }
 
-function generateNumberText(scene: Scene): Container {
-	const numberTexts: Text[] = [];
-	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
-		if (numArray[i] == 0 || numArray[i] >= 10)
-			continue;
-		const txt = scene.add.text(tileArray[i].x, tileArray[i].y, numArray[i].toString());
-		txt.setOrigin(0.5);
-		txt.setFontSize(40);
-		txt.setFontStyle('Bold');
-		numberTexts.push(txt);
-	}
-	return scene.add.container(0, 0, numberTexts);
+function initFlagArray() {
+	for (let i = 0; i < gridSize.x * gridSize.y; i++)
+		flagArray.push(null);
 }
+//#endregion
 
+//#region Generate GameObjects
 function generateBackground(scene: Scene): Rectangle {
 	return scene.add.rectangle(
 		0, 0,
@@ -133,6 +163,20 @@ function generateBGTiles(scene: Scene): Container {
 		bgTileArray.push(createBGTile(scene, tileSize));
 	gridAlignCenter(bgTileArray, gridSize, cellSize);
 	return scene.add.container(0, 0, bgTileArray);
+}
+
+function generateNumberText(scene: Scene): Container {
+	const numberTexts: Text[] = [];
+	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
+		if (numArray[i] == 0 || numArray[i] >= 10)
+			continue;
+		const txt = scene.add.text(tileArray[i].x, tileArray[i].y, numArray[i].toString());
+		txt.setOrigin(0.5);
+		txt.setFontSize(43);
+		txt.setFontStyle('Bold');
+		numberTexts.push(txt);
+	}
+	return scene.add.container(0, 0, numberTexts);
 }
 
 function generateTiles(scene: Scene): Container {
@@ -191,14 +235,11 @@ function generateMines(scene: Scene): Container {
 
 	return scene.add.container(0, 0, mineArray);
 }
+//#endregion
 
+//#region Create GamObject
 function createBGTile(scene: Scene, size: Vector2): Rectangle {
 	const tileVisual = scene.add.rectangle(0, 0, size.x, size.y, 0xffffff, 0.3);
-	return tileVisual;
-}
-
-function createMine(scene: Scene, size: Vector2): Rectangle {
-	const tileVisual = scene.add.rectangle(0, 0, size.x, size.y, 0x000000);
 	return tileVisual;
 }
 
@@ -221,15 +262,32 @@ function createTile(scene: Scene, size: Vector2, gapSize: Vector2, index: intege
 	scene.input.on('gameout', onOut);
 
 	// On Click
-	onTilePointerDown(tileClick, tileVisual, index);
+	onTilePointerDown(scene, tileClick, tileVisual, index);
 
 	return container;
 }
 
+function createMine(scene: Scene, size: Vector2): Rectangle {
+	const tileVisual = scene.add.rectangle(0, 0, size.x, size.y, 0x000000);
+	return tileVisual;
+}
+
+function createFlag(scene: Scene): Text {
+	// const flag = scene.add.triangle(0, 0, 0, 0, 0, 100, 100, 50, 0xff1100).setOrigin(0, 1);
+	// const poll = scene.add.rectangle(0, 0, 0.1, 1);
+	const flag = scene.add.text(0, 0, "🚩");
+	flag.setOrigin(0.5);
+	flag.setPadding(20);
+	flag.setFontSize(80);
+	flagContainer.add(flag);
+	return flag;
+}
+//#endregion
+
+//#region Tile logic
 function openTile(pos: Vector2) {
 	const children = tileArray[toIndex(pos)].getAll();
-	if (children.length == 0) return
-
+	if (children.length == 0) return;
 	for (var child of children)
 		child.destroy();
 }
@@ -240,15 +298,9 @@ function openTileRecurs(pos: Vector2) {
 	// this is horrible
 
 	const children = tileArray[toIndex(pos)].getAll();
-	if (children.length == 0) return
-
+	if (children.length == 0) return;
 	for (var child of children)
 		child.destroy();
-
-	const rightInBound = pos.x + 1 < gridSize.x;
-	const leftInBound = pos.x - 1 >= 0;
-	const upInBound = pos.y + 1 < gridSize.y;
-	const downInBound = pos.y - 1 >= 0;
 
 	function openNext(nextPos: Vector2) {
 		if (numArray[toIndex(nextPos)] == 0)
@@ -257,43 +309,69 @@ function openTileRecurs(pos: Vector2) {
 			openTile(nextPos);
 	}
 
+	const rightInBound = pos.x + 1 < gridSize.x;
+	const leftInBound = pos.x - 1 >= 0;
+	const upInBound = pos.y + 1 < gridSize.y;
+	const downInBound = pos.y - 1 >= 0;
+
 	if (rightInBound)
 		openNext(pos.clone().add(new Vector2(+1, +0)));
 	if (leftInBound)
 		openNext(pos.clone().add(new Vector2(-1, +0)));
-
 	if (upInBound)
 		openNext(pos.clone().add(new Vector2(+0, +1)));
 	if (downInBound)
 		openNext(pos.clone().add(new Vector2(+0, -1)));
-
 	if (upInBound && rightInBound)
 		openNext(pos.clone().add(new Vector2(+1, +1)));
 	if (upInBound && leftInBound)
 		openNext(pos.clone().add(new Vector2(-1, +1)));
-
 	if (downInBound && rightInBound)
 		openNext(pos.clone().add(new Vector2(+1, -1)));
 	if (downInBound && leftInBound)
 		openNext(pos.clone().add(new Vector2(-1, -1)));
 }
 
-function onTilePointerDown(tileClick: Rectangle, tileVisual: Rectangle, index: integer) {
-	tileClick.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-		if (pointer.button != 0)
-			return
+function onTilePointerDown(scene: Scene, tileClick: Rectangle, tileVisual: Rectangle, index: integer) {
+	function leftClick() {
 		curTileClicked = tileClick;
 		curTileVisual = tileVisual;
 		curTileVisual.setFillStyle(tileVisualClickedColor);
+
 		clickCallBack = () => {
-			openTileRecurs(toCoord(index));
+			if (numArray[index] > 9) {
+				// Game Over!
+				openTile(toCoord(index));
+			} else {
+				openTileRecurs(toCoord(index));
+			}
 		};
+	}
+
+	function rightClick() {
+		if (curTileClicked != null)
+			return;
+
+		if (flagArray[index] == null) {
+			flagArray[index] = createFlag(scene);
+			// flagArray[index].setPosition(tileArray[index]);
+		}
+		else {
+			flagArray[index].destroy();
+		}
+	}
+
+	tileClick.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+		switch (pointer.button) {
+			case 0: leftClick();
+			case 2: rightClick();
+		}
 	});
 }
 
 function onTilePointerUp(scene: Scene) {
 	function onPointerUp() {
-		if (!curTileClicked) return
+		if (!curTileClicked) return;
 		curTileVisual.setFillStyle(tileVisualOriginalColor);
 		curTileVisual = null;
 		curTileClicked = null;
@@ -302,12 +380,12 @@ function onTilePointerUp(scene: Scene) {
 
 	scene.input.on('gameout', onPointerUp);
 	scene.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-		if (pointer.button != 0) return
+		if (pointer.button != 0) return;
 		onPointerUp();
 	});
 
 	scene.input.on('gameobjectup', (pointer: Phaser.Input.Pointer, obj: GameObject) => {
-		if (pointer.button != 0) return
+		if (pointer.button != 0) return;
 
 		if (obj == curTileClicked)
 			clickCallBack();
@@ -321,33 +399,4 @@ function onTilePointerUp(scene: Scene) {
 		clickCallBack = () => { };
 	});
 }
-
-function createFlag(scene: Scene): Container {
-	const flag = scene.add.triangle(0, 0, 0, 0, 0, 100, 100, 50, 0xff1100).setOrigin(0, 1);
-	// const poll = scene.add.rectangle(0, 0, 0.1, 1);
-	return scene.add.container(0, 0, [flag]);
-}
-
-function gridAlignCenter(items: PositionObject[], gridSize: Vector2, cellSize: Vector2) {
-	const initial_x = (cellSize.x - cellSize.x * gridSize.x) * 0.5;
-	const initial_y = (cellSize.y - cellSize.y * gridSize.y) * 0.5;
-	let curPosX = initial_x;
-	let curPosY = initial_y;
-	let index_x = 0;
-	let index_y = 0;
-
-	for (var item of items) {
-		item.setPosition(curPosX, curPosY);
-		if (index_x < gridSize.x - 1) {
-			index_x += 1;
-			curPosX += cellSize.x;
-			continue;
-		}
-		if (index_y < gridSize.y - 1) {
-			index_x = 0;
-			curPosX = initial_x;
-			index_y += 1;
-			curPosY += cellSize.y;
-		}
-	}
-}
+//#endregion
