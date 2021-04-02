@@ -6,10 +6,10 @@
 // - mouse support
 // TODO:
 // - right click flag (swap button for touch)
-// - random mine position
-// - game state
-// - game menu and ui
-// - configurable level
+// - game menu and ui 
+//   (https://blog.ourcade.co/posts/2020/phaser-3-google-fonts-webfontloader/)
+// - configurable settings
+// - save game sate
 
 
 // Types
@@ -25,17 +25,26 @@ type Container = Phaser.GameObjects.Container;
 type Rectangle = Phaser.GameObjects.Rectangle;
 type PositionObject = Container | Rectangle;
 
+enum GameState {
+	Playing,
+	GameEnd
+}
+
+
 // Globals
+let gameSate: GameState = GameState.Playing;
 let camMain: Phaser.Cameras.Scene2D.Camera;
 let camCenter: () => Vector2;
 let world: Container;
 let flagContainer: Container;
 
 // Grid settings
-const gridSize = new Vector2(8, 8);
+const gridSize = new Vector2(10, 10);
 const gapSize = new Vector2(10, 10);
-const tileSize = new Vector2(100, 100);
+const tileSize = new Vector2(85, 85);
 const cellSize = tileSize.clone().add(gapSize);
+const mineCount = 10;
+let tileLeft = gridSize.x * gridSize.y - mineCount;
 
 // Colors
 const tileVisualOriginalColor: integer = 0xffffff;
@@ -49,13 +58,13 @@ let clickCallBack = () => { };
 
 // Tiles
 let bgTileArray: Rectangle[] = [];
-let numArray: integer[] = [];
 let tileArray: Container[] = [];
-let mineArray: Rectangle[] = [];
+let mineArray: Text[] = [];
+let numArray: integer[] = [];
 let flagArray: Text[] = [];
 
 
-// Game Scene
+//#region Game Scene
 export default class MinesweeperScene extends Scene {
 	constructor() {
 		super('Minesweeper');
@@ -93,6 +102,7 @@ export default class MinesweeperScene extends Scene {
 		onTilePointerUp(this);
 	}
 }
+//#endregion
 
 //#region Utility
 function toCoord(i: integer): Vector2 {
@@ -116,7 +126,7 @@ function gridAlignCenter(items: PositionObject[], gridSize: Vector2, cellSize: V
 	let index_x = 0;
 	let index_y = 0;
 
-	for (var item of items) {
+	for (let item of items) {
 		if (item == null)
 			continue;
 
@@ -134,6 +144,25 @@ function gridAlignCenter(items: PositionObject[], gridSize: Vector2, cellSize: V
 		}
 	}
 }
+
+function getRandomIndices(count: integer): integer[] {
+	var array: integer[] = [];
+	for (let i = 0; i < gridSize.x * gridSize.y; i++)
+		array.push(i);
+
+	let curIndex = array.length;
+	let tmpValue = 0;
+	let randIndex = 0;
+	while (0 != curIndex) {
+		randIndex = Math.floor(Math.random() * curIndex);
+		curIndex--;
+		tmpValue = array[curIndex];
+		array[curIndex] = array[randIndex];
+		array[randIndex] = tmpValue;
+	}
+
+	return array.slice(0, count - 1);
+}
 //#endregion
 
 //#region Initialize
@@ -145,6 +174,33 @@ function initNumberArray() {
 function initFlagArray() {
 	for (let i = 0; i < gridSize.x * gridSize.y; i++)
 		flagArray.push(null);
+}
+//#endregion
+
+//#region Game Logic
+function removeTileInteraction() {
+	for (let item of tileArray) {
+		item?.getAll().forEach((child: Rectangle) => {
+			if (child) {
+				if (child.alpha != 0) child.setAlpha(0.5);
+				child.removeInteractive();
+			}
+		});
+	}
+}
+
+function gameWin() {
+	gameSate = GameState.GameEnd;
+	// do stuff
+	console.log("Game Win!");
+	removeTileInteraction();
+}
+
+function gameLose() {
+	gameSate = GameState.GameEnd;
+	// do stuff
+	console.log("Game Lose!");
+	removeTileInteraction();
 }
 //#endregion
 
@@ -165,20 +221,6 @@ function generateBGTiles(scene: Scene): Container {
 	return scene.add.container(0, 0, bgTileArray);
 }
 
-function generateNumberText(scene: Scene): Container {
-	const numberTexts: Text[] = [];
-	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
-		if (numArray[i] == 0 || numArray[i] >= 10)
-			continue;
-		const txt = scene.add.text(tileArray[i].x, tileArray[i].y, numArray[i].toString());
-		txt.setOrigin(0.5);
-		txt.setFontSize(43);
-		txt.setFontStyle('Bold');
-		numberTexts.push(txt);
-	}
-	return scene.add.container(0, 0, numberTexts);
-}
-
 function generateTiles(scene: Scene): Container {
 	for (let i = 0; i < gridSize.x * gridSize.y; i++)
 		tileArray.push(createTile(scene, tileSize, gapSize, i));
@@ -187,20 +229,7 @@ function generateTiles(scene: Scene): Container {
 }
 
 function generateMines(scene: Scene): Container {
-	let minePositions = [
-		toIndex(new Vector2(0, 0)),
-		toIndex(new Vector2(1, 3)),
-		toIndex(new Vector2(2, 2)),
-		toIndex(new Vector2(2, 6)),
-		toIndex(new Vector2(3, 4)),
-		toIndex(new Vector2(4, 5)),
-		toIndex(new Vector2(5, 1)),
-		toIndex(new Vector2(5, 2)),
-		toIndex(new Vector2(6, 6)),
-		toIndex(new Vector2(7, 5)),
-	];
-
-	for (let i of minePositions) {
+	for (let i of getRandomIndices(mineCount)) {
 		const mine = createMine(scene, tileSize.clone().divide(new Vector2(2, 2))).
 			setPosition(tileArray[i].x, tileArray[i].y);
 		mineArray.push(mine);
@@ -235,12 +264,26 @@ function generateMines(scene: Scene): Container {
 
 	return scene.add.container(0, 0, mineArray);
 }
+
+function generateNumberText(scene: Scene): Container {
+	const numberTexts: Text[] = [];
+	for (let i = 0; i < gridSize.x * gridSize.y; i++) {
+		if (numArray[i] == 0 || numArray[i] >= 10)
+			continue;
+		const txt = scene.add.text(tileArray[i].x, tileArray[i].y, numArray[i].toString());
+		txt.setOrigin(0.5);
+		txt.setFontSize(tileSize.y * 0.43);
+		txt.setFontStyle('Bold');
+		numberTexts.push(txt);
+	}
+	return scene.add.container(0, 0, numberTexts);
+}
 //#endregion
 
 //#region Create GamObject
 function createBGTile(scene: Scene, size: Vector2): Rectangle {
-	const tileVisual = scene.add.rectangle(0, 0, size.x, size.y, 0xffffff, 0.3);
-	return tileVisual;
+	const tile = scene.add.rectangle(0, 0, size.x, size.y, 0xffffff, 0.3);
+	return tile;
 }
 
 function createTile(scene: Scene, size: Vector2, gapSize: Vector2, index: integer): Container {
@@ -267,44 +310,59 @@ function createTile(scene: Scene, size: Vector2, gapSize: Vector2, index: intege
 	return container;
 }
 
-function createMine(scene: Scene, size: Vector2): Rectangle {
-	const tileVisual = scene.add.rectangle(0, 0, size.x, size.y, 0x000000);
-	return tileVisual;
+function createMine(scene: Scene, size: Vector2): Text {
+	const mine = scene.add.text(0, 0, "💣");
+	mine.setOrigin(0.5);
+	mine.setPadding(20);
+	mine.setFontSize(tileSize.y * 0.65);
+	return mine;
 }
 
 function createFlag(scene: Scene): Text {
-	// const flag = scene.add.triangle(0, 0, 0, 0, 0, 100, 100, 50, 0xff1100).setOrigin(0, 1);
-	// const poll = scene.add.rectangle(0, 0, 0.1, 1);
 	const flag = scene.add.text(0, 0, "🚩");
 	flag.setOrigin(0.5);
 	flag.setPadding(20);
-	flag.setFontSize(65);
+	flag.setFontSize(tileSize.y * 0.65);
 	flagContainer.add(flag);
 	return flag;
 }
 //#endregion
 
 //#region Tile logic
+function removeTile(tileChildren: GameObject[]) {
+	tileChildren.forEach(child => { child.destroy(); });
+	if (--tileLeft == 0) {
+		gameWin();
+	}
+}
+
+function removeFlag(pos: Vector2) {
+	if (flagArray[toIndex(pos)] != null) {
+		flagArray[toIndex(pos)].destroy();
+		flagArray[toIndex(pos)] = null
+	}
+}
+
 function openTile(pos: Vector2) {
 	const children = tileArray[toIndex(pos)].getAll();
 	if (children.length == 0) return;
-	for (var child of children)
-		child.destroy();
+	removeTile(children);
+	removeFlag(pos);
 }
 
-function openTileRecurs(pos: Vector2) {
+function openTileRecursive(pos: Vector2) {
 	// TODO:
-	// Do not use recursive algorithm
-	// this is horrible
+	// Do not use this stupid implementation
+	// this is really really horrible...
 
 	const children = tileArray[toIndex(pos)].getAll();
 	if (children.length == 0) return;
-	for (var child of children)
-		child.destroy();
+	removeTile(children);
+	removeFlag(pos);
 
 	function openNext(nextPos: Vector2) {
 		if (numArray[toIndex(nextPos)] == 0)
-			openTileRecurs(nextPos);
+			openTileRecursive(nextPos);
 		else if (numArray[toIndex(nextPos)] < 10)
 			openTile(nextPos);
 	}
@@ -334,39 +392,36 @@ function openTileRecurs(pos: Vector2) {
 
 function onTilePointerDown(scene: Scene, tileClick: Rectangle, tileVisual: Rectangle, index: integer) {
 	function leftClick() {
-		console.log("left click");
-		if (flagArray[index] != null)
-			return;
+		if (flagArray[index]) return;
 
 		curTileClicked = tileClick;
 		curTileVisual = tileVisual;
 		curTileVisual.setFillStyle(tileVisualClickedColor);
-
 		clickCallBack = () => {
 			if (numArray[index] > 9) {
-				// Game Over!
+				gameLose();
 				openTile(toCoord(index));
 			} else {
-				openTileRecurs(toCoord(index));
+				openTileRecursive(toCoord(index));
 			}
 		};
 	}
 
 	function rightClick() {
-		console.log("right click");
-		if (curTileClicked != null)
-			return;
+		if (curTileClicked) return;
 
-		if (flagArray[index] == null) {
-			flagArray[index] = createFlag(scene);
-			flagArray[index].setPosition(tileArray[index].x, tileArray[index].y);
-		}
-		else {
+		// Toggle flag
+		if (flagArray[index]) {
 			flagArray[index].destroy();
 			flagArray[index] = null;
 		}
+		else {
+			flagArray[index] = createFlag(scene);
+			flagArray[index].setPosition(tileArray[index].x, tileArray[index].y);
+		}
 	}
 
+	// Handle click event
 	tileClick.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
 		switch (pointer.button) {
 			case 0:
@@ -390,12 +445,12 @@ function onTilePointerUp(scene: Scene) {
 
 	scene.input.on('gameout', onPointerUp);
 	scene.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-		if (pointer.button != 0) return;
-		onPointerUp();
+		if (pointer.button == 0) onPointerUp();
 	});
 
 	scene.input.on('gameobjectup', (pointer: Phaser.Input.Pointer, obj: GameObject) => {
-		if (pointer.button != 0) return;
+		if (pointer.button != 0)
+			return;
 
 		if (obj == curTileClicked)
 			clickCallBack();
