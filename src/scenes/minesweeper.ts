@@ -278,7 +278,7 @@ function createFlag(scene: Scene): Text {
 	const flag = scene.add.text(0, 0, "🚩");
 	flag.setOrigin(0.5);
 	flag.setPadding(20);
-	flag.setFontSize(80);
+	flag.setFontSize(65);
 	flagContainer.add(flag);
 	return flag;
 }
@@ -334,6 +334,10 @@ function openTileRecurs(pos: Vector2) {
 
 function onTilePointerDown(scene: Scene, tileClick: Rectangle, tileVisual: Rectangle, index: integer) {
 	function leftClick() {
+		console.log("left click");
+		if (flagArray[index] != null)
+			return;
+
 		curTileClicked = tileClick;
 		curTileVisual = tileVisual;
 		curTileVisual.setFillStyle(tileVisualClickedColor);
@@ -349,22 +353,28 @@ function onTilePointerDown(scene: Scene, tileClick: Rectangle, tileVisual: Recta
 	}
 
 	function rightClick() {
+		console.log("right click");
 		if (curTileClicked != null)
 			return;
 
 		if (flagArray[index] == null) {
 			flagArray[index] = createFlag(scene);
-			// flagArray[index].setPosition(tileArray[index]);
+			flagArray[index].setPosition(tileArray[index].x, tileArray[index].y);
 		}
 		else {
 			flagArray[index].destroy();
+			flagArray[index] = null;
 		}
 	}
 
 	tileClick.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
 		switch (pointer.button) {
-			case 0: leftClick();
-			case 2: rightClick();
+			case 0:
+				leftClick();
+				break;
+			case 2:
+				rightClick();
+				break;
 		}
 	});
 }
