@@ -291,14 +291,14 @@ function createTile(scene: Scene, size: Vector2, gapSize: Vector2, index: intege
 		rectangle(0, 0, size.x, size.y, tileVisualOriginalColor);
 
 	const tileClick = scene.add.
-		rectangle(0, 0, size.x + gapSize.x, size.y + gapSize.y, 0x000000, 0).
+		rectangle(0, 0, size.x + gapSize.x, size.y + gapSize.y, 0x5555ff, 0).
 		setInteractive();
 
 	const container = scene.add.
 		container(0, 0, [tileVisual, tileClick]);
 
 	// Hover effect
-	function onOver() { tileClick.setFillStyle(tileClick.fillColor, 0.1); }
+	function onOver() { tileClick.setFillStyle(tileClick.fillColor, 0.3); }
 	function onOut() { tileClick.setFillStyle(tileClick.fillColor, 0); }
 	tileClick.on('pointerover', onOver);
 	tileClick.on('pointerout', onOut);
