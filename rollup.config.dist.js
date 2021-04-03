@@ -7,7 +7,7 @@ import copy from 'rollup-plugin-copy';
 export default {
 	//  Our games entry point (edit as required)
 	input: [
-		'./src/game.ts'
+		'./src/main.ts'
 	],
 
 	//  Where the build file is to be generated.
