@@ -43,7 +43,7 @@ const gridSize = new Vector2(10, 10);
 const gapSize = new Vector2(10, 10);
 const tileSize = new Vector2(85, 85);
 const cellSize = tileSize.clone().add(gapSize);
-const mineCount = 10;
+const mineCount = 15;
 let tileLeft = gridSize.x * gridSize.y - mineCount;
 
 // Colors
@@ -161,7 +161,7 @@ function getRandomIndices(count: integer): integer[] {
 		array[randIndex] = tmpValue;
 	}
 
-	return array.slice(0, count - 1);
+	return array.slice(0, count);
 }
 //#endregion
 

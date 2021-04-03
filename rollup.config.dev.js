@@ -4,6 +4,7 @@ import replace from '@rollup/plugin-replace';
 import esbuild from 'rollup-plugin-esbuild';
 import copy from 'rollup-plugin-copy';
 import serve from 'rollup-plugin-serve';
+import livereload from 'rollup-plugin-livereload';
 
 export default {
 	//  Our games entry point (edit as required)
@@ -80,6 +81,8 @@ export default {
 			headers: {
 				'Access-Control-Allow-Origin': '*'
 			}
-		})
+		}),
+
+		livereload()
 	]
 };
